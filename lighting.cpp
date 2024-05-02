@@ -91,17 +91,20 @@ int main(void)
                                TextFormat("shaders/lighting.fs", GLSL_VERSION));
 
     shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
+
+    int cameraTarget = GetShaderLocation(shader, "cameraTarget");
     
     int ambientLoc = GetShaderLocation(shader, "ambient");
-    float arr[4] = {0.5f, 0.5f, 0.5f, 1.0f};
-    SetShaderValue(shader, ambientLoc, arr, SHADER_UNIFORM_VEC4);
+    float ambientFactor = 0.1f;
+    float ambient[4] = {ambientFactor, ambientFactor, ambientFactor, 1.0f};
+    SetShaderValue(shader, ambientLoc, ambient, SHADER_UNIFORM_VEC4);
 
     floor.materials[0].shader = shader;
     sphere1.materials[0].shader = shader;
 
     Light lights[MAX_LIGHTS_COUNT] = {
-        Light(0, (Vector3){ -2, 1, -2 }, Vector3Zero(), BLUE, shader),
-        Light(1, (Vector3){ 2, 1, -2 }, Vector3Zero(), RED, shader)
+        Light(0, (Vector3){ -13, 1, -10 }, Vector3Zero(), BLUE, shader),
+        Light(1, (Vector3){ 13, 1, -10 }, Vector3Zero(), RED, shader)
     };
 
     SetTargetFPS(60);
@@ -117,6 +120,7 @@ int main(void)
 
         float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
         SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
+        SetShaderValue(shader, cameraTarget, &camera.target, SHADER_UNIFORM_VEC3);
         
         if(IsKeyPressed(KEY_B)) 
             lights[0].toggle();

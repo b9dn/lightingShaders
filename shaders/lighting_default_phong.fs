@@ -3,6 +3,7 @@
 // Input vertex attributes (from vertex shader)
 in vec3 fragPosition;
 in vec2 fragTexCoord;
+//in vec4 fragColor;
 in vec3 fragNormal;
 
 // Input uniform values
@@ -30,23 +31,25 @@ uniform vec3 cameraTarget;
 void main() {
     vec3 normal = normalize(fragNormal);
     vec3 viewToFrag = normalize(viewPos - fragPosition);
-    vec3 viewSource = normalize(viewPos - cameraTarget);
+    //vec3 viewSource = normalize(viewPos - cameraTarget);
 
     vec3 diffuse = vec3(0.0);
     vec3 specular = vec3(0.0);
-    for (int i = 0; i < MAX_LIGHTS_COUNT; i++) {
+    for(int i = 0; i < MAX_LIGHTS_COUNT; i++) {
         if(lights[i].enabled == 1) {
             vec3 light = normalize(lights[i].position - fragPosition);
             float diffuseStrength = max(0.0, dot(light, normal));
             diffuse += diffuseStrength * lights[i].color.xyz;
 
-            float specCo = 0.0;
-            if (diffuseStrength > 0.0) specCo = pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), 16.0);
-            specular += specCo;
+            vec3 reflectSource = normalize(reflect(-lights[i].position, normal));
+            float specularStrength = max(0.0, dot(viewToFrag, reflectSource));
+            specularStrength = pow(specularStrength, 32.0);
+            specular += specularStrength * lights[i].color.xyz;
         }
     }
 
-    finalColor = (colDiffuse + vec4(specular, 1.0))*vec4(diffuse, 1.0); 
-    finalColor += (ambient/10.0)*colDiffuse;
+    vec3 lighting = 0.3 * ambient.xyz + 1.0 * diffuse + 1.0 * specular;
+    vec3 col = colDiffuse.xyz * lighting;
+    finalColor = vec4(col, 1.0);
     finalColor = pow(finalColor, vec4(1.0/1.3));
 }
