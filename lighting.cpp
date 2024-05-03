@@ -1,5 +1,7 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
+#define RAYGUI_IMPLEMENTATION
+#include "include/raygui.h"
 
 #define GLSL_VERSION            330
 #define MAX_LIGHTS_COUNT        2
@@ -8,7 +10,7 @@ class Light {
 private:
     unsigned int id;
 
-    bool enabled;
+    int enabled;
     Vector3 position;
     Vector3 target;
     Color color;
@@ -17,11 +19,13 @@ private:
     int positionLoc;
     int targetLoc;
     int colorLoc;
+
+    float move_step = 0.1f;
     
 public:
     Light(int id, Vector3 position, Vector3 target, Color color, Shader shader) {
         this->id = id;
-        this->enabled = true;
+        this->enabled = 1;
         this->position = position;
         this->target = target;
         this->color = color;
@@ -47,7 +51,23 @@ public:
     }
 
     void toggle() {
-        enabled ^= true;
+        enabled ^= 1;
+    }
+
+    void move_left() {
+        position.x -= move_step;
+    }
+    
+    void move_right() {
+        position.x += move_step;
+    }
+
+    void move_forward() {
+        position.z += move_step;
+    }
+
+    void move_backward() {
+        position.z -= move_step;
     }
 
     bool is_enabled() {
@@ -63,6 +83,7 @@ public:
     }
 };
 
+float myFloatXdTejNazwyNaperwnoNieMa = 5.0;
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -85,8 +106,23 @@ int main(void)
     camera.projection = CAMERA_PERSPECTIVE;
 
     Model floor = LoadModelFromMesh(GenMeshPlane(30.0f, 30.0f, 3, 3));
-    Model sphere1 = LoadModelFromMesh(GenMeshSphere(1.0f, 30, 30));
+    float floorDiffuseFactor = 1.0;
+    float floorSpecularFactor = 1.0;
+
+    Model sphere = LoadModelFromMesh(GenMeshSphere(1.0f, 30, 30));
+
+    float sphere1DiffuseFactor = 1.0;
+    float sphere1SpecularFactor = 0.1;
+
+    float sphere2DiffuseFactor = 0.7;
+    float sphere2SpecularFactor = 0.3;
     
+    float sphere3DiffuseFactor = 0.3;
+    float sphere3SpecularFactor = 0.7;
+    
+    float sphere4DiffuseFactor = 0.1;
+    float sphere4SpecularFactor = 1.0;
+
     Shader shader = LoadShader(TextFormat("shaders/lighting.vs", GLSL_VERSION),
                                TextFormat("shaders/lighting.fs", GLSL_VERSION));
 
@@ -95,12 +131,16 @@ int main(void)
     int cameraTarget = GetShaderLocation(shader, "cameraTarget");
     
     int ambientLoc = GetShaderLocation(shader, "ambient");
-    float ambientFactor = 0.1f;
+    float ambientFactor = 0.3f;
     float ambient[4] = {ambientFactor, ambientFactor, ambientFactor, 1.0f};
     SetShaderValue(shader, ambientLoc, ambient, SHADER_UNIFORM_VEC4);
 
+    int diffuseFactorLoc = GetShaderLocation(shader, "diffuseFactor");
+
+    int specularFactorLoc = GetShaderLocation(shader, "specularFactor");
+
     floor.materials[0].shader = shader;
-    sphere1.materials[0].shader = shader;
+    sphere.materials[0].shader = shader;
 
     Light lights[MAX_LIGHTS_COUNT] = {
         Light(0, (Vector3){ -13, 1, -10 }, Vector3Zero(), BLUE, shader),
@@ -109,14 +149,15 @@ int main(void)
 
     SetTargetFPS(60);
     DisableCursor();
+    bool cursorEnabled = false;
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while(!WindowShouldClose())
-    {
+    while(!WindowShouldClose()) {
         // Update
         //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_PERSPECTIVE);
+        if(!cursorEnabled)
+            UpdateCamera(&camera, CAMERA_PERSPECTIVE);
 
         float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
         SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
@@ -126,6 +167,33 @@ int main(void)
             lights[0].toggle();
         if(IsKeyPressed(KEY_R)) 
             lights[1].toggle();
+
+        if(IsKeyPressed(KEY_LEFT_ALT)) {
+            if(cursorEnabled) {
+                DisableCursor();
+                cursorEnabled = false;
+            }
+            else {
+                EnableCursor();
+                cursorEnabled = true;
+            }
+        }
+
+        if(IsKeyDown(KEY_L)) {
+            lights[0].move_left();
+        }
+
+        if(IsKeyDown(KEY_H)) {
+            lights[0].move_right();
+        }
+        
+        if(IsKeyDown(KEY_K)) {
+            lights[0].move_forward();
+        }
+        
+        if(IsKeyDown(KEY_J)) {
+            lights[0].move_backward();
+        }
         
         for(int i = 0; i < MAX_LIGHTS_COUNT; i++)
             lights[i].update(shader);
@@ -139,15 +207,32 @@ int main(void)
 
             BeginMode3D(camera);
 
+                SetShaderValue(shader, diffuseFactorLoc, &floorDiffuseFactor, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(shader, specularFactorLoc, &floorSpecularFactor, SHADER_UNIFORM_FLOAT);
                 DrawModel(floor, Vector3Zero(), 1.0f, DARKBLUE);
                 /* DrawModelEx(floor, (Vector3){0.0f, 15.0f, 15.0f}, (Vector3){1.0f, 0.0f, 0.0f}, -90.0f, Vector3One(), DARKBLUE); */
-                DrawModel(sphere1, (Vector3){-4.5f, 1.0f, 0.0f}, 1.0f, WHITE);
-                DrawModel(sphere1, (Vector3){-1.5f, 1.0f, 0.0f}, 1.0f, WHITE);
-                DrawModel(sphere1, (Vector3){1.5f, 1.0f, 0.0f}, 1.0f, WHITE);
-                DrawModel(sphere1, (Vector3){4.5f, 1.0f, 0.0f}, 1.0f, WHITE);
 
-                for(int i = 0; i < MAX_LIGHTS_COUNT; i++)
-                {
+                SetShaderValue(shader, diffuseFactorLoc, &sphere1DiffuseFactor, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(shader, specularFactorLoc, &sphere1SpecularFactor, SHADER_UNIFORM_FLOAT);
+                DrawModel(sphere, (Vector3){-4.5f, 1.0f, 0.0f}, 1.0f, WHITE);
+                
+
+                SetShaderValue(shader, diffuseFactorLoc, &sphere2DiffuseFactor, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(shader, specularFactorLoc, &sphere2SpecularFactor, SHADER_UNIFORM_FLOAT);
+                DrawModel(sphere, (Vector3){-1.5f, 1.0f, 0.0f}, 1.0f, WHITE);
+
+
+                SetShaderValue(shader, diffuseFactorLoc, &sphere3DiffuseFactor, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(shader, specularFactorLoc, &sphere3SpecularFactor, SHADER_UNIFORM_FLOAT);
+                DrawModel(sphere, (Vector3){1.5f, 1.0f, 0.0f}, 1.0f, WHITE);
+
+
+                SetShaderValue(shader, diffuseFactorLoc, &sphere4DiffuseFactor, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(shader, specularFactorLoc, &sphere4SpecularFactor, SHADER_UNIFORM_FLOAT);
+                DrawModel(sphere, (Vector3){4.5f, 1.0f, 0.0f}, 1.0f, WHITE);
+
+
+                for(int i = 0; i < MAX_LIGHTS_COUNT; i++) {
                     if(lights[i].is_enabled())
                         DrawSphereEx(lights[i].get_position(), 0.2f, 8, 8, lights[i].get_color());
                     else 
@@ -160,6 +245,7 @@ int main(void)
 
             DrawFPS(10, 10);
 
+            /* GuiSliderBar((Rectangle){10, 70, 300, 40}, NULL, "Slidder", &testValue, -150.0f, 750.0f); */
             DrawText("R, B to toggle lights", 10, 40, 20, DARKGRAY);
 
         EndDrawing();
@@ -169,7 +255,7 @@ int main(void)
     // De-Initialization
     //--------------------------------------------------------------------------------------
     UnloadModel(floor);
-    UnloadModel(sphere1);
+    UnloadModel(sphere);
     UnloadShader(shader);
 
     CloseWindow();

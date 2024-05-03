@@ -28,6 +28,9 @@ uniform vec4 ambient;
 uniform vec3 viewPos;
 uniform vec3 cameraTarget;
 
+uniform float diffuseFactor;
+uniform float specularFactor;
+
 void main() {
     vec3 normal = normalize(fragNormal);
     vec3 viewToFrag = normalize(viewPos - fragPosition);
@@ -43,12 +46,12 @@ void main() {
 
             vec3 reflectSource = normalize(reflect(-lights[i].position, normal));
             float specularStrength = max(0.0, dot(viewToFrag, reflectSource));
-            specularStrength = pow(specularStrength, 32.0);
+            specularStrength = pow(specularStrength, 16.0);
             specular += specularStrength * lights[i].color.xyz;
         }
     }
 
-    vec3 lighting = 0.3 * ambient.xyz + 1.0 * diffuse + 1.0 * specular;
+    vec3 lighting = 0.3 * ambient.xyz + diffuseFactor * diffuse + specularFactor * specular;
     vec3 col = colDiffuse.xyz * lighting;
     finalColor = vec4(col, 1.0);
     finalColor = pow(finalColor, vec4(1.0/1.3));

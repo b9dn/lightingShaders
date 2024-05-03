@@ -27,22 +27,23 @@ uniform vec4 ambient;
 uniform vec3 viewPos;
 uniform vec3 cameraTarget;
 
+uniform float diffuseFactor;
+uniform float specularFactor;
+
 void main() {
     vec3 normal = normalize(fragNormal);
     vec3 viewToFrag = normalize(viewPos - fragPosition);
-    vec3 viewSource = normalize(viewPos - cameraTarget);
+    //vec3 viewSource = normalize(viewPos - cameraTarget);
 
     vec3 diffuse = vec3(0.0);
     vec3 specular = vec3(0.0);
-    for (int i = 0; i < MAX_LIGHTS_COUNT; i++) {
+    for(int i = 0; i < MAX_LIGHTS_COUNT; i++) {
         if(lights[i].enabled == 1) {
             vec3 light = normalize(lights[i].position - fragPosition);
             float diffuseStrength = max(0.0, dot(light, normal));
-            diffuse += diffuseStrength * lights[i].color.xyz;
+            diffuse += diffuseStrength * lights[i].color.xyz * diffuseFactor;
 
-            float specCo = 0.0;
-            if (diffuseStrength > 0.0) specCo = pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), 16.0);
-            specular += specCo;
+            specular += pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), 16.0) * specularFactor;
         }
     }
 
