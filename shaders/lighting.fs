@@ -26,6 +26,7 @@ uniform Light lights[MAX_LIGHTS_COUNT];
 uniform vec4 ambient;
 uniform vec3 viewPos;
 uniform vec3 cameraTarget;
+uniform float smoothness;
 
 uniform float diffuseFactor;
 uniform float specularFactor;
@@ -43,11 +44,11 @@ void main() {
             float diffuseStrength = max(0.0, dot(light, normal));
             diffuse += diffuseStrength * lights[i].color.xyz * diffuseFactor;
 
-            specular += pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), 16.0) * specularFactor;
+            specular += pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), smoothness) * specularFactor * 2.0;
         }
     }
 
     finalColor = (colDiffuse + vec4(specular, 1.0))*vec4(diffuse, 1.0); 
-    finalColor += (ambient/10.0)*colDiffuse;
+    finalColor += (ambient/5.0)*colDiffuse;
     finalColor = pow(finalColor, vec4(1.0/1.3));
 }

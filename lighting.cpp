@@ -83,7 +83,6 @@ public:
     }
 };
 
-float myFloatXdTejNazwyNaperwnoNieMa = 5.0;
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -112,28 +111,34 @@ int main(void)
     Model sphere = LoadModelFromMesh(GenMeshSphere(1.0f, 30, 30));
 
     float sphere1DiffuseFactor = 1.0;
-    float sphere1SpecularFactor = 0.1;
+    float sphere1SpecularFactor = 0.0;
 
-    float sphere2DiffuseFactor = 0.7;
-    float sphere2SpecularFactor = 0.3;
+    float sphere2DiffuseFactor = 1.0;
+    float sphere2SpecularFactor = 0.2;
     
-    float sphere3DiffuseFactor = 0.3;
-    float sphere3SpecularFactor = 0.7;
+    float sphere3DiffuseFactor = 0.4;
+    float sphere3SpecularFactor = 0.4;
     
-    float sphere4DiffuseFactor = 0.1;
+    float sphere4DiffuseFactor = 0.3;
     float sphere4SpecularFactor = 1.0;
 
+#ifdef PHONG_DEFAULT
+    Shader shader = LoadShader(TextFormat("shaders/lighting.vs", GLSL_VERSION),
+                               TextFormat("shaders/lighting_phong_default.fs", GLSL_VERSION));
+#else
     Shader shader = LoadShader(TextFormat("shaders/lighting.vs", GLSL_VERSION),
                                TextFormat("shaders/lighting.fs", GLSL_VERSION));
+#endif
 
     shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
 
     int cameraTarget = GetShaderLocation(shader, "cameraTarget");
+
+    float smoothness = 16.0;
+    int smoothnessLoc = GetShaderLocation(shader, "smoothness");
     
-    int ambientLoc = GetShaderLocation(shader, "ambient");
     float ambientFactor = 0.3f;
-    float ambient[4] = {ambientFactor, ambientFactor, ambientFactor, 1.0f};
-    SetShaderValue(shader, ambientLoc, ambient, SHADER_UNIFORM_VEC4);
+    int ambientLoc = GetShaderLocation(shader, "ambient");
 
     int diffuseFactorLoc = GetShaderLocation(shader, "diffuseFactor");
 
@@ -147,9 +152,10 @@ int main(void)
         Light(1, (Vector3){ 13, 1, -10 }, Vector3Zero(), RED, shader)
     };
 
+    bool cursorEnabled = false;
+
     SetTargetFPS(60);
     DisableCursor();
-    bool cursorEnabled = false;
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -162,6 +168,11 @@ int main(void)
         float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
         SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
         SetShaderValue(shader, cameraTarget, &camera.target, SHADER_UNIFORM_VEC3);
+
+        float ambient[4] = {ambientFactor, ambientFactor, ambientFactor, 1.0f};
+        SetShaderValue(shader, ambientLoc, ambient, SHADER_UNIFORM_VEC4);
+
+        SetShaderValue(shader, smoothnessLoc, &smoothness, SHADER_UNIFORM_FLOAT);
         
         if(IsKeyPressed(KEY_B)) 
             lights[0].toggle();
@@ -245,8 +256,10 @@ int main(void)
 
             DrawFPS(10, 10);
 
-            /* GuiSliderBar((Rectangle){10, 70, 300, 40}, NULL, "Slidder", &testValue, -150.0f, 750.0f); */
             DrawText("R, B to toggle lights", 10, 40, 20, DARKGRAY);
+            DrawText("Left-ALT enable/disable mouse", 10, 60, 20, DARKGRAY);
+            GuiSliderBar((Rectangle){10, 90, 300, 30}, NULL, "Ambient factor", &ambientFactor, 0.0f, 1.0f);
+            GuiSliderBar((Rectangle){10, 130, 300, 30}, NULL, "Smoothness factor", &smoothness, 1.0f, 150.0f);
 
         EndDrawing();
         //----------------------------------------------------------------------------------

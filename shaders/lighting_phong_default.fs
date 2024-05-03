@@ -27,6 +27,7 @@ uniform Light lights[MAX_LIGHTS_COUNT];
 uniform vec4 ambient;
 uniform vec3 viewPos;
 uniform vec3 cameraTarget;
+uniform float smoothness;
 
 uniform float diffuseFactor;
 uniform float specularFactor;
@@ -46,7 +47,7 @@ void main() {
 
             vec3 reflectSource = normalize(reflect(-lights[i].position, normal));
             float specularStrength = max(0.0, dot(viewToFrag, reflectSource));
-            specularStrength = pow(specularStrength, 16.0);
+            specularStrength = pow(specularStrength, smoothness);
             specular += specularStrength * lights[i].color.xyz;
         }
     }
