@@ -258,8 +258,9 @@ int main(void)
 
             DrawText("R, B to toggle lights", 10, 40, 20, DARKGRAY);
             DrawText("Left-ALT enable/disable mouse", 10, 60, 20, DARKGRAY);
-            GuiSliderBar((Rectangle){10, 90, 300, 30}, NULL, "Ambient factor", &ambientFactor, 0.0f, 1.0f);
-            GuiSliderBar((Rectangle){10, 130, 300, 30}, NULL, "Smoothness factor", &smoothness, 1.0f, 150.0f);
+            DrawText("HJKL move right light", 10, 80, 20, DARKGRAY);
+            GuiSliderBar((Rectangle){10, 110, 300, 30}, NULL, "Ambient factor", &ambientFactor, 0.0f, 1.0f);
+            GuiSliderBar((Rectangle){10, 150, 300, 30}, NULL, "Smoothness factor", &smoothness, 1.0f, 100.0f);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
