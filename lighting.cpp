@@ -50,6 +50,10 @@ public:
         SetShaderValue(shader, colorLoc, color, SHADER_UNIFORM_VEC4);
     }
 
+    void update_light_col(Color color) {
+        this->color = color;
+    }
+
     void toggle() {
         enabled ^= 1;
     }
@@ -113,11 +117,11 @@ int main(void)
     float sphere1DiffuseFactor = 1.0;
     float sphere1SpecularFactor = 0.0;
 
-    float sphere2DiffuseFactor = 1.0;
+    float sphere2DiffuseFactor = 0.8;
     float sphere2SpecularFactor = 0.2;
     
-    float sphere3DiffuseFactor = 0.4;
-    float sphere3SpecularFactor = 0.4;
+    float sphere3DiffuseFactor = 0.7;
+    float sphere3SpecularFactor = 0.1;
     
     float sphere4DiffuseFactor = 0.3;
     float sphere4SpecularFactor = 1.0;
@@ -147,9 +151,11 @@ int main(void)
     floor.materials[0].shader = shader;
     sphere.materials[0].shader = shader;
 
+    Color lightColors[MAX_LIGHTS_COUNT] = { WHITE, BLUE };
+
     Light lights[MAX_LIGHTS_COUNT] = {
-        Light(0, (Vector3){ -13, 1, -10 }, Vector3Zero(), BLUE, shader),
-        Light(1, (Vector3){ 13, 1, -10 }, Vector3Zero(), RED, shader)
+        Light(0, (Vector3){ -13, 1, -10 }, Vector3Zero(), lightColors[0], shader),
+        Light(1, (Vector3){ 13, 1, -10 }, Vector3Zero(), lightColors[1], shader)
     };
 
     bool cursorEnabled = false;
@@ -206,8 +212,10 @@ int main(void)
             lights[0].move_backward();
         }
         
-        for(int i = 0; i < MAX_LIGHTS_COUNT; i++)
+        for(int i = 0; i < MAX_LIGHTS_COUNT; i++) {
+            lights[i].update_light_col(lightColors[i]);
             lights[i].update(shader);
+        }
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -261,6 +269,8 @@ int main(void)
             DrawText("HJKL move right light", 10, 80, 20, DARKGRAY);
             GuiSliderBar((Rectangle){10, 110, 300, 30}, NULL, "Ambient factor", &ambientFactor, 0.0f, 1.0f);
             GuiSliderBar((Rectangle){10, 150, 300, 30}, NULL, "Smoothness factor", &smoothness, 1.0f, 100.0f);
+            GuiColorPicker((Rectangle){10, 190, 300, 40}, "Color first light", &lightColors[0]);
+            GuiColorPicker((Rectangle){10, 240, 300, 40}, "Color first light", &lightColors[1]);
 
         EndDrawing();
         //----------------------------------------------------------------------------------

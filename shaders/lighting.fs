@@ -44,7 +44,7 @@ void main() {
             float diffuseStrength = max(0.0, dot(light, normal));
             diffuse += diffuseStrength * lights[i].color.xyz * diffuseFactor;
 
-            specular += pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), smoothness) * specularFactor * 2.0;
+            specular += pow(max(0.0, dot(viewToFrag, reflect(-(light), normal))), smoothness) * specularFactor * 3.0;
         }
     }
 
