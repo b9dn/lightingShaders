@@ -57,3 +57,4 @@ void main() {
     finalColor = vec4(col, 1.0);
     finalColor = pow(finalColor, vec4(1.0/1.3));
 }
+

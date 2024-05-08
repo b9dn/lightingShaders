@@ -52,3 +52,4 @@ void main() {
     finalColor += (ambient/5.0)*colDiffuse;
     finalColor = pow(finalColor, vec4(1.0/1.3));
 }
+
