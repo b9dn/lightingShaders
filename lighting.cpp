@@ -120,8 +120,8 @@ int main(void)
     float sphere2DiffuseFactor = 0.8;
     float sphere2SpecularFactor = 0.2;
     
-    float sphere3DiffuseFactor = 0.7;
-    float sphere3SpecularFactor = 0.1;
+    float sphere3DiffuseFactor = 0.6;
+    float sphere3SpecularFactor = 0.5;
     
     float sphere4DiffuseFactor = 0.3;
     float sphere4SpecularFactor = 1.0;
