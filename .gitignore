@@ -1,6 +1,6 @@
 include/
 lib/
-a.exe
-phong_default.exe
+*.exe
+*.o
 raylib-5.0/
 test/
